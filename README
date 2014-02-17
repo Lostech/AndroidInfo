@@ -1,0 +1,5 @@
+AndroidInfo is a small tool which does read out system information from Android devices via ADB.
+To compile the binary you need Lazarus/FPC.
+The sourcecode is released under the General Public License Version 2.
+
+http://www.gnu.org/licenses/gpl-2.0
