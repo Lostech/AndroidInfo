@@ -33,7 +33,7 @@ type
   end;
 
 const
-  Version:   String = '1.0';
+  Version:   String = '1.1';
 
 var
   Separator: String;
@@ -428,6 +428,15 @@ begin
       AProcess.Execute;
       AProcess.Free;
 
+      WriteLn('Lese Mounts von /proc/mounts (nur bei bereits installiertem root moeglich!)');
+      TmpFile.Add('"'+adb+'" shell cat /proc/mounts >'+Output+'\proc_mounts.tmp');
+      TmpFile.SaveToFile(ChangeFileExt(ExeName,'.bat'));
+      AProcess:=TProcess.Create(nil);
+      AProcess.CommandLine:=ChangeFileExt(ExeName,'.bat');
+      AProcess.Options:=AProcess.Options + [poWaitOnExit, poUsePipes];
+      AProcess.Execute;
+      AProcess.Free;
+
     end;
 
   if SuperUser.Count>0 then
@@ -452,6 +461,7 @@ begin
               if TmpFile.Strings[i]<>'' then
                 begin
                   Info.Add(TmpFile.Strings[i]);
+                  WriteLn(TmpFile.Strings[i]);
                 end;
             end;
         end
@@ -472,12 +482,34 @@ begin
               if TmpFile.Strings[i]<>'' then
                 begin
                   Info.Add(TmpFile.Strings[i]);
+                  WriteLn(TmpFile.Strings[i]);
                 end;
             end;
         end
       else
         begin
           WriteLn('Partitionen von /proc/partitions konnten nicht ausgelesenen werden (kein root)');
+          Info.Add('');
+        end;
+      if FileExists(Output+'\proc_mounts.tmp') then
+        begin
+          WriteLn('Partitionen von /proc/mounts (nur mit ADB Root Unterstuetzung moeglich!)');
+          Info.Add('');
+          Info.Add('Partitionen von /proc/mounts:');
+          Info.Add('-----------------------------');
+          TmpFile.LoadFromFile(Output+'\proc_mounts.tmp');
+          for i:=0 to TmpFile.Count-1 do
+            begin
+              if TmpFile.Strings[i]<>'' then
+                begin
+                  Info.Add(TmpFile.Strings[i]);
+                  WriteLn(TmpFile.Strings[i]);
+                end;
+            end;
+        end
+      else
+        begin
+          WriteLn('Partitionen von /proc/mounts konnten nicht ausgelesenen werden (kein root)');
           Info.Add('');
         end;
     end;
@@ -543,6 +575,11 @@ begin
     begin
       DeleteFile(Output+'\proc_partitions.tmp');
       WriteLn(Output+'\proc_partitions.tmp');
+    end;
+  if FileExists(Output+'\proc_mounts.tmp') then
+    begin
+      DeleteFile(Output+'\proc_mounts.tmp');
+      WriteLn(Output+'\proc_mounts.tmp');
     end;
   TmpFile.Free;
   SuperUser.Free;
